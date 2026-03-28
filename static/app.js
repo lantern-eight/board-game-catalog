@@ -318,7 +318,7 @@ function renderCard(game) {
   }
   if (game.age) {
     const sp = document.createElement('span');
-    sp.textContent = `\u{1F9EE} ${game.age}`;
+    sp.textContent = `\u{1F464} ${game.age}`;
     meta.appendChild(sp);
   }
   body.appendChild(meta);
