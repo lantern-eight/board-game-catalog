@@ -10,7 +10,7 @@ filters:
   - 5
   - 6
   - 7
-  - 8+
+  - 8
   time:
   - <30 min
   - 30-60 min
@@ -27,14 +27,25 @@ filters:
   - 14+
   - 18+
   style:
-  - free for all
-  - co-op
-  - 1 vs rest
+  - Free for All
+  - Co-op
+  - 1 vs Rest
+  - Secret Agent
   type:
-  - card
-  - board
-  - dice
-  - tiles
+  - Card
+  - Board
+  - Dice
+  - Tiles
+  - Memory
+  - Strategy
+  - Party
+  - Family
+  - Group
+  - Kids
+  - Reading
+  - No Reading
+  - Legacy
+  - Campaign
 sort_options:
 - key: date_added
   label: Recently Added
