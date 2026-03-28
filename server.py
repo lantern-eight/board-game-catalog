@@ -101,16 +101,67 @@ def save_games():
     raise
 
 
+def save_defaults():
+  """Atomically write defaults to YAML file."""
+  path = os.path.join(BASE_DIR, "config", "defaults.yaml")
+  header = "# Default configuration for the Board Game Catalog\n# Filter options and theme definitions.\n\n"
+  fd, tmp_path = tempfile.mkstemp(
+    dir=os.path.dirname(path), suffix=".tmp"
+  )
+  try:
+    with os.fdopen(fd, "w") as f:
+      f.write(header)
+      yaml.dump(DEFAULTS, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    os.replace(tmp_path, path)
+  except Exception:
+    try:
+      os.unlink(tmp_path)
+    except OSError:
+      pass
+    raise
+
+
+def save_env_theme(theme):
+  """Update THEME in .env (creates from .env.example if needed)."""
+  env_path = os.path.join(BASE_DIR, ".env")
+  source_path = env_path
+  if not os.path.isfile(source_path):
+    source_path = os.path.join(BASE_DIR, ".env.example")
+  lines = []
+  found = False
+  if os.path.isfile(source_path):
+    with open(source_path, "r") as f:
+      for line in f:
+        if line.strip().startswith("THEME="):
+          lines.append(f"THEME={theme}\n")
+          found = True
+        else:
+          lines.append(line)
+  if not found:
+    lines.append(f"THEME={theme}\n")
+  fd, tmp_path = tempfile.mkstemp(dir=BASE_DIR, suffix=".tmp")
+  try:
+    with os.fdopen(fd, "w") as f:
+      f.writelines(lines)
+    os.replace(tmp_path, env_path)
+  except Exception:
+    try:
+      os.unlink(tmp_path)
+    except OSError:
+      pass
+    raise
+  CONFIG["THEME"] = theme
+
+
 # ---------------------------------------------------------------------------
 # Slug utilities
 # ---------------------------------------------------------------------------
 
 def slugify(name):
-  """Convert a game name to a filesystem-safe slug."""
+  """Convert a game name to a filesystem-safe slug (preserves spaces)."""
   s = name.lower().strip()
-  s = re.sub(r"[^\w\s-]", "", s)
-  s = re.sub(r"[\s_]+", "-", s)
-  s = re.sub(r"-+", "-", s).strip("-")
+  s = re.sub(r'[<>:"/\\|?*\x00]', '', s)
+  s = re.sub(r'\s+', ' ', s).strip()
   return s or "unnamed"
 
 
@@ -143,7 +194,7 @@ def list_game_images(slug):
     if ext not in img_exts:
       continue
     base = os.path.splitext(fname)[0].lower()
-    url = f"/images/{slug}/{fname}"
+    url = f"/images/{urllib.parse.quote(slug, safe='')}/{urllib.parse.quote(fname, safe='')}"
     if base == "cover":
       cover = url
     else:
@@ -226,7 +277,7 @@ class CatalogHandler(http.server.BaseHTTPRequestHandler):
 
   def _route(self, path):
     """Parse path and return (route_key, params)."""
-    parts = [p for p in path.strip("/").split("/") if p]
+    parts = [urllib.parse.unquote(p) for p in path.strip("/").split("/") if p]
     if not parts:
       return ("index", {})
     if parts[0] == "static":
@@ -244,6 +295,10 @@ class CatalogHandler(http.server.BaseHTTPRequestHandler):
         return ("api_game_favorite", {"slug": parts[2]})
       if len(parts) == 4 and parts[1] == "games" and parts[3] == "images":
         return ("api_game_images", {"slug": parts[2]})
+      if len(parts) == 3 and parts[1] == "config" and parts[2] == "theme":
+        return ("api_config_theme", {})
+      if len(parts) == 2 and parts[1] == "defaults":
+        return ("api_defaults", {})
     return ("not_found", {})
 
   # -- GET -----------------------------------------------------------------
@@ -348,6 +403,24 @@ class CatalogHandler(http.server.BaseHTTPRequestHandler):
         GAMES[idx] = game
         save_games()
       self._send_json(200, game_to_api(game))
+
+    elif route == "api_config_theme":
+      data = self._read_body()
+      theme = data.get("theme", "")
+      available = list(DEFAULTS.get("themes", {}).keys())
+      if theme not in available:
+        self._send_json(400, {"error": f"Invalid theme. Available: {available}"})
+        return
+      save_env_theme(theme)
+      self._send_json(200, {"theme": theme})
+
+    elif route == "api_defaults":
+      data = self._read_body()
+      new_filters = data.get("filters")
+      if new_filters is not None:
+        DEFAULTS["filters"] = new_filters
+        save_defaults()
+      self._send_json(200, {"filters": DEFAULTS.get("filters", {})})
 
     else:
       self.send_error(404)

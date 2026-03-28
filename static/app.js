@@ -361,7 +361,7 @@ function renderCard(game) {
   starBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
     const newVal = !game.favorite;
-    await api('PUT', `/api/games/${game.slug}/favorite`, { favorite: newVal });
+    await api('PUT', `/api/games/${encodeURIComponent(game.slug)}/favorite`, { favorite: newVal });
     game.favorite = newVal;
     renderAll();
   });
@@ -527,7 +527,7 @@ function renderModalDetails() {
   deleteBtn.textContent = 'Delete Game';
   deleteBtn.addEventListener('click', async () => {
     if (!confirm(`Delete "${g.name}"? This removes it from the catalog (images are kept on disk).`)) return;
-    await api('DELETE', `/api/games/${g.slug}`);
+    await api('DELETE', `/api/games/${encodeURIComponent(g.slug)}`);
     games = games.filter(gm => gm.slug !== g.slug);
     closeModal();
     renderAll();
@@ -755,7 +755,7 @@ async function saveModalChanges() {
   data.favorite = modalGame.favorite;
 
   try {
-    const updated = await api('PUT', `/api/games/${modalGame.slug}`, data);
+    const updated = await api('PUT', `/api/games/${encodeURIComponent(modalGame.slug)}`, data);
     // Update local game data
     const idx = games.findIndex(g => g.slug === modalGame.slug);
     if (idx >= 0) {
@@ -823,6 +823,162 @@ function pickRandom() {
 }
 
 // ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+let settingsOriginalTheme = '';
+
+function openSettings() {
+  settingsOriginalTheme = config.theme;
+  document.getElementById('settings-overlay').classList.add('open');
+  renderSettings();
+}
+
+function closeSettings() {
+  document.documentElement.setAttribute('data-theme', settingsOriginalTheme);
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+function renderSettings() {
+  const content = document.getElementById('settings-content');
+  content.innerHTML = '';
+
+  // Theme section
+  const themeTitle = document.createElement('h3');
+  themeTitle.textContent = 'Theme';
+  content.appendChild(themeTitle);
+
+  const themePicker = document.createElement('div');
+  themePicker.className = 'modal-pill-picker';
+  themePicker.id = 'settings-theme-picker';
+  for (const theme of (config.themes || [])) {
+    const pill = document.createElement('button');
+    pill.className = 'pill' + (theme === config.theme ? ' active' : '');
+    pill.textContent = theme;
+    pill.dataset.value = theme;
+    pill.addEventListener('click', () => {
+      themePicker.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      document.documentElement.setAttribute('data-theme', theme);
+    });
+    themePicker.appendChild(pill);
+  }
+  content.appendChild(themePicker);
+
+  // Filter options
+  const filtersTitle = document.createElement('h3');
+  filtersTitle.textContent = 'Filter Options';
+  filtersTitle.style.marginTop = '0.5rem';
+  content.appendChild(filtersTitle);
+
+  const categories = [
+    { key: 'players', label: 'Players' },
+    { key: 'time', label: 'Time' },
+    { key: 'age', label: 'Age' },
+    { key: 'style', label: 'Style' },
+    { key: 'type', label: 'Type' },
+  ];
+
+  for (const { key, label } of categories) {
+    const section = document.createElement('div');
+    section.className = 'settings-section';
+    section.dataset.filterKey = key;
+
+    const lbl = document.createElement('label');
+    lbl.textContent = label;
+    section.appendChild(lbl);
+
+    const items = document.createElement('div');
+    items.className = 'settings-filter-items';
+    for (const val of (filters[key] || [])) {
+      items.appendChild(makeSettingsItem(String(val)));
+    }
+    section.appendChild(items);
+
+    const addRow = document.createElement('div');
+    addRow.className = 'settings-add-row';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = `Add ${label.toLowerCase()}...`;
+    const addBtn = document.createElement('button');
+    addBtn.className = 'pill';
+    addBtn.textContent = '+ Add';
+    addBtn.addEventListener('click', () => {
+      const v = input.value.trim();
+      if (!v) return;
+      items.appendChild(makeSettingsItem(v));
+      input.value = '';
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); }
+    });
+    addRow.appendChild(input);
+    addRow.appendChild(addBtn);
+    section.appendChild(addRow);
+
+    content.appendChild(section);
+  }
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'modal-actions';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'modal-save-btn';
+  saveBtn.textContent = 'Save Settings';
+  saveBtn.addEventListener('click', saveSettings);
+  actions.appendChild(saveBtn);
+  content.appendChild(actions);
+}
+
+function makeSettingsItem(value) {
+  const item = document.createElement('div');
+  item.className = 'settings-filter-item';
+  item.dataset.value = value;
+  const text = document.createElement('span');
+  text.textContent = value;
+  item.appendChild(text);
+  const btn = document.createElement('button');
+  btn.className = 'settings-filter-remove';
+  btn.textContent = '\u00D7';
+  btn.addEventListener('click', () => item.remove());
+  item.appendChild(btn);
+  return item;
+}
+
+async function saveSettings() {
+  const themePicker = document.getElementById('settings-theme-picker');
+  const activePill = themePicker.querySelector('.pill.active');
+  const newTheme = activePill ? activePill.dataset.value : config.theme;
+
+  const newFilters = {};
+  document.querySelectorAll('#settings-content .settings-section[data-filter-key]').forEach(section => {
+    const key = section.dataset.filterKey;
+    const items = section.querySelectorAll('.settings-filter-item');
+    newFilters[key] = [...items].map(item => {
+      const val = item.dataset.value;
+      if (key === 'players') {
+        const num = parseInt(val, 10);
+        return isNaN(num) ? val : num;
+      }
+      return val;
+    });
+  });
+
+  try {
+    if (newTheme !== settingsOriginalTheme) {
+      await api('PUT', '/api/config/theme', { theme: newTheme });
+      config.theme = newTheme;
+    }
+    await api('PUT', '/api/defaults', { filters: newFilters });
+    filters = newFilters;
+    settingsOriginalTheme = config.theme;
+    document.getElementById('settings-overlay').classList.remove('open');
+    renderAll();
+  } catch (err) {
+    alert('Failed to save settings: ' + err.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Event listeners
 // ---------------------------------------------------------------------------
 function setupEvents() {
@@ -839,9 +995,10 @@ function setupEvents() {
 
   // Sort
   document.getElementById('sort-select').addEventListener('change', (e) => {
-    const [key, dir] = e.target.value.split('-');
-    sortKey = key;
-    sortAsc = dir === 'asc';
+    const val = e.target.value;
+    const sep = val.lastIndexOf('-');
+    sortKey = val.substring(0, sep);
+    sortAsc = val.substring(sep + 1) === 'asc';
     renderAll();
   });
 
@@ -890,12 +1047,21 @@ function setupEvents() {
     }
   });
 
+  // Settings
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('settings-close').addEventListener('click', closeSettings);
+  document.getElementById('settings-overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeSettings();
+  });
+
   // Keyboard
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const pickOverlay = document.getElementById('pick-overlay');
       if (pickOverlay.style.display !== 'none') {
         pickOverlay.style.display = 'none';
+      } else if (document.getElementById('settings-overlay').classList.contains('open')) {
+        closeSettings();
       } else if (document.getElementById('modal-overlay').classList.contains('open')) {
         closeModal();
       }

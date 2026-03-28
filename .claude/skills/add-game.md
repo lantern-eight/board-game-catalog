@@ -26,7 +26,7 @@ Show the user what you identified and ask them to confirm or correct. Then ask f
 
 ## Step 3: Save the Photo
 
-1. Generate a slug from the game name (lowercase, hyphens, no special chars)
+1. Generate a slug from the game name (lowercase, spaces preserved, no filesystem-unsafe chars)
 2. Create the image directory: `images/{slug}/`
 3. Copy/save the photo as `images/{slug}/cover.jpg` (or appropriate extension)
 
