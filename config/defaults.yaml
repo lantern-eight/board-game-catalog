@@ -1,0 +1,103 @@
+# Default configuration for the Board Game Catalog
+# This file is tracked in git and defines available filter options and themes.
+
+filters:
+  players: [1, 2, 3, 4, 5, 6, 7, "8+"]
+  time:
+    - "<30 min"
+    - "30-60 min"
+    - "60-90 min"
+    - "90-120 min"
+    - "2-3 hours"
+    - "4+ hours"
+  age:
+    - "3+"
+    - "5+"
+    - "8+"
+    - "10+"
+    - "12+"
+    - "14+"
+    - "18+"
+  style:
+    - "free for all"
+    - "co-op"
+    - "1 vs rest"
+  type:
+    - "card"
+    - "board"
+    - "dice"
+    - "tiles"
+
+sort_options:
+  - key: "date_added"
+    label: "Recently Added"
+    default_direction: "desc"
+  - key: "name"
+    label: "Name (A-Z)"
+    default_direction: "asc"
+  - key: "players_min"
+    label: "Player Count"
+    default_direction: "asc"
+  - key: "time_order"
+    label: "Play Time"
+    default_direction: "asc"
+
+# Theme definitions - CSS custom property values
+# Available themes: dark-blue-teal, dark-purple, light
+themes:
+  dark-blue-teal:
+    bg-deep: "#0a0f14"
+    bg-card: "#0f1920"
+    bg-card-hover: "#142530"
+    bg-toolbar: "rgba(10, 15, 20, 0.92)"
+    border: "#1e3a4a"
+    border-glow: "#1abc9c"
+    accent: "#5dade2"
+    accent-hover: "#3498db"
+    accent-bright: "#1abc9c"
+    gold: "#f0c040"
+    gold-dim: "#a08020"
+    text: "#d0e8f0"
+    text-dim: "#6a8a9a"
+    text-bright: "#ffffff"
+    pill-bg: "#152530"
+    pill-active: "#1abc9c"
+    pill-active-text: "#0a0f14"
+
+  dark-purple:
+    bg-deep: "#0a0a0f"
+    bg-card: "#14141f"
+    bg-card-hover: "#1a1a2e"
+    bg-toolbar: "rgba(10, 10, 15, 0.92)"
+    border: "#2a2a3e"
+    border-glow: "#6c5ce7"
+    accent: "#a29bfe"
+    accent-hover: "#6c5ce7"
+    accent-bright: "#6c5ce7"
+    gold: "#f0c040"
+    gold-dim: "#a08020"
+    text: "#e0e0f0"
+    text-dim: "#8888aa"
+    text-bright: "#ffffff"
+    pill-bg: "#1a1a2e"
+    pill-active: "#6c5ce7"
+    pill-active-text: "#ffffff"
+
+  light:
+    bg-deep: "#f0f2f5"
+    bg-card: "#ffffff"
+    bg-card-hover: "#f8f9fa"
+    bg-toolbar: "rgba(240, 242, 245, 0.95)"
+    border: "#d0d5dd"
+    border-glow: "#1abc9c"
+    accent: "#2980b9"
+    accent-hover: "#2471a3"
+    accent-bright: "#1abc9c"
+    gold: "#d4a017"
+    gold-dim: "#b8860b"
+    text: "#2c3e50"
+    text-dim: "#7f8c8d"
+    text-bright: "#1a1a1a"
+    pill-bg: "#e8ecf0"
+    pill-active: "#2980b9"
+    pill-active-text: "#ffffff"

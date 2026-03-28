@@ -1,0 +1,45 @@
+# Board Game Catalog - Game Data
+# Copy to games.yaml and add your own games.
+# Images go in images/{slug}/ with cover.jpg/png as the hero image.
+
+games:
+  - name: "Settlers of Catan"
+    slug: "settlers-of-catan"
+    players: [3, 4]
+    time: "60-90 min"
+    age: "10+"
+    style: ["free for all"]
+    type: ["board"]
+    tags: ["strategy", "family"]
+    notes: "Best with 4 players. Seafarers expansion adds variety."
+    links:
+      - label: "Rules PDF"
+        url: "https://www.catan.com/understand-catan/game-rules"
+    favorite: true
+    date_added: "2026-01-15"
+
+  - name: "Codenames"
+    slug: "codenames"
+    players: [4, 5, 6, 7, 8, "8+"]
+    time: "<30 min"
+    age: "10+"
+    style: ["co-op"]
+    type: ["card"]
+    tags: ["group", "party"]
+    notes: ""
+    links: []
+    favorite: false
+    date_added: "2026-02-20"
+
+  - name: "Pandemic"
+    slug: "pandemic"
+    players: [2, 3, 4]
+    time: "30-60 min"
+    age: "8+"
+    style: ["co-op"]
+    type: ["board"]
+    tags: ["strategy", "family"]
+    notes: "Great intro to co-op games."
+    links: []
+    favorite: false
+    date_added: "2026-03-01"

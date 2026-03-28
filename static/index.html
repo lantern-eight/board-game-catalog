@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-blue-teal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board Game Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-glow"></div>
+  <h1>Board Game Catalog</h1>
+  <p class="subtitle">Choose Your Next Adventure</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="num" id="stat-total">0</div>
+      <div class="label">Games</div>
+    </div>
+    <div class="stat">
+      <div class="num" id="stat-shown">0</div>
+      <div class="label">Shown</div>
+    </div>
+    <div class="stat">
+      <div class="num" id="stat-favorites">0</div>
+      <div class="label">Favorites</div>
+    </div>
+  </div>
+</header>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="toolbar-search-row">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Search games..." autocomplete="off">
+    </div>
+    <select id="sort-select" class="sort-select">
+      <option value="date_added-desc">Recently Added</option>
+      <option value="name-asc">Name (A-Z)</option>
+      <option value="players_min-asc">Player Count</option>
+      <option value="time_order-asc">Play Time</option>
+    </select>
+    <button class="pick-btn" id="pick-btn" title="Pick a random game from filtered results">Pick for me</button>
+    <div class="global-gallery-nav">
+      <button class="global-gallery-btn" id="global-gallery-prev" title="Previous image">&#9664;</button>
+      <button class="global-gallery-btn" id="global-gallery-reset" title="Reset to cover">&#8634;</button>
+      <button class="global-gallery-btn" id="global-gallery-next" title="Next image">&#9654;</button>
+    </div>
+  </div>
+  <div class="filter-pills-wrap">
+    <div class="filter-pills" id="filter-pills"></div>
+  </div>
+</div>
+
+<!-- Game Grid -->
+<main class="grid-container">
+  <div class="grid" id="game-grid"></div>
+  <div class="empty-state" id="empty-state" style="display:none;">
+    <p>No games match your filters.</p>
+  </div>
+</main>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div class="modal-content">
+      <!-- Gallery -->
+      <div class="modal-gallery">
+        <img class="modal-hero-img" id="modal-hero-img" src="" alt="">
+        <button class="modal-img-nav modal-img-prev" id="modal-img-prev">&#9664;</button>
+        <button class="modal-img-nav modal-img-next" id="modal-img-next">&#9654;</button>
+        <div class="modal-img-dots" id="modal-img-dots"></div>
+      </div>
+      <!-- Metadata form -->
+      <div class="modal-details" id="modal-details">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pick result overlay -->
+<div class="pick-overlay" id="pick-overlay" style="display:none;">
+  <div class="pick-card" id="pick-card"></div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
